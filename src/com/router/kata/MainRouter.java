@@ -22,9 +22,10 @@ public class MainRouter implements Router {
 	public Map<String, List<Router>> routers = new HashMap<>();
 
 	public void addRouter(String prefix, Router router) {
-		if (routers.containsKey(prefix)) {
+		if (!routers.containsKey(prefix)) {
 			routers.put(prefix, new ArrayList<>());
 		}
+		routers.get(prefix).add(router);
 	}
 
 	public void addStatsCollector(StatsCollector collector) {
