@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author muhammadali
@@ -14,6 +16,15 @@ import java.util.Map;
  */
 
 public class MainRouter implements Router {
+	private BlockingQueue<Packet> queue = new LinkedBlockingQueue<>();
+	private Consumer consumer = new Consumer(queue);
+	private Thread consumerThread;
+
+	public MainRouter() {
+
+		consumerThread = new Thread(consumer);
+		consumerThread.start();
+	}
 
 	public List<RouteDecider> routeDeciders = new ArrayList<>();
 
@@ -36,6 +47,38 @@ public class MainRouter implements Router {
 		routeDeciders.add(routeDecider);
 	}
 
+	private class Consumer implements Runnable {
+		private BlockingQueue<Packet> consumerQueue;
+
+		public Consumer(BlockingQueue<Packet> queue) {
+			this.consumerQueue = queue;
+		}
+
+		@Override
+		public void run() {
+			try {
+
+				while (true) {
+					Packet packet = consumerQueue.take();
+					String[] octates = packet.getTargetIp().split("\\.");
+					String prefix = octates[0] + "." + octates[1];
+					List<Router> routerList = routers.get(prefix);
+					if (null != routerList && !routerList.isEmpty()) {
+						for (Router router : routerList) {
+							if (null != router) {
+								router.route(packet);
+							}
+						}
+					}
+
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
 	@Override
 	public void route(Packet packet) {
 
@@ -43,19 +86,14 @@ public class MainRouter implements Router {
 			statsCollector.collectStatistics(packet);
 		}
 
-		String[] octates = packet.getTargetIp().split("\\.");
-		String prefix = octates[0] + "." + octates[1];
 		boolean shouldRoute = routeDeciders.parallelStream().allMatch(x -> x.shouldRoute(packet));
-		if (shouldRoute) {
-			List<Router> routerList = routers.get(prefix);
-			if (null != routerList && !routerList.isEmpty()) {
-				for (Router router : routerList) {
-					if (null != router) {
-						router.route(packet);
-					}
-				}
-			}
 
+		if (shouldRoute) {
+			try {
+				queue.put(packet);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 
 	}

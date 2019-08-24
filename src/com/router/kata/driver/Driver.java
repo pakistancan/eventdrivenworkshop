@@ -3,6 +3,7 @@
  */
 package com.router.kata.driver;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,14 +82,16 @@ public class Driver {
 		return mainRouter;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		MainRouter mainRouter = createRouter();
 
-		String[] ips = new String[] { "192.168.0.1", "10.10.10.0", "172.13.10.10", "192.168.0.251" };
+		String[] ips = new String[] { "192.168.0.1", "10.10.10.0", "172.13.10.10", "192.168.0.251", "192.168.0.252",
+				"192.168.0.253", "192.168.0.241", "192.168.0.231", "10.10.10.100" };
 		for (String ip : ips) {
 			Packet packet = new Packet(ip);
 			mainRouter.route(packet);
 		}
+
 	}
 
 }
