@@ -51,7 +51,7 @@ public class Driver {
 
 			@Override
 			public void collectStatistics(Packet packet) {
-				System.out.println("Packet Arrived with IP :: " + packet.getPacketIp());
+				System.out.println("Packet Arrived with IP :: " + packet.getTargetIp());
 			}
 		};
 		mainRouter.addStatsCollector(defaultStatsCollector);
@@ -70,8 +70,8 @@ public class Driver {
 
 			@Override
 			public boolean shouldRoute(Packet p) {
-				if (reservedIps.contains(p.getPacketIp())) {
-					System.out.println("IP is reserved returning " + p.getPacketIp());
+				if (reservedIps.contains(p.getTargetIp())) {
+					System.out.println("IP is reserved returning " + p.getTargetIp());
 					return false;
 				}
 				return true;

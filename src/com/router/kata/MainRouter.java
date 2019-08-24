@@ -42,7 +42,7 @@ public class MainRouter implements Router {
 			statsCollector.collectStatistics(packet);
 		}
 
-		String[] octates = packet.getPacketIp().split("\\.");
+		String[] octates = packet.getTargetIp().split("\\.");
 		String prefix = octates[0] + "." + octates[1];
 		boolean shouldRoute = routeDeciders.parallelStream().allMatch(x -> x.shouldRoute(packet));
 		if (shouldRoute) {
